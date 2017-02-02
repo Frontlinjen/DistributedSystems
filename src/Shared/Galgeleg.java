@@ -5,11 +5,24 @@
  */
 package Shared;
 
+import java.io.Serializable;
+
 /**
  *
  * @author hjorthen
  */
 public interface Galgeleg extends java.rmi.Remote {
-    boolean guessWord(String word, String authToken) throws java.rmi.RemoteException;
+    public class GuessResult implements Serializable{
+        public static enum Status implements Serializable {
+            Running, 
+            Lost, 
+            Won
+        }
+        public int wrongGuesses;
+        public boolean correctGuess;
+        public String wordProgress;
+        public Status status;
+    }
+    GuessResult guessWord(String word, int authToken) throws java.rmi.RemoteException;
     int login(String username, String password) throws java.rmi.RemoteException;
 }

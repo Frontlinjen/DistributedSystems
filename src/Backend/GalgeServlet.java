@@ -5,7 +5,9 @@
  */
 package Backend;
 
+import brugerautorisation.transport.rmi.Brugeradmin;
 import Shared.Galgeleg;
+import brugerautorisation.data.Bruger;
 import galgeleg.Galgelogik;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
@@ -28,27 +30,33 @@ public class GalgeServlet extends UnicastRemoteObject implements Galgeleg {
     }
     
     @Override
-    public boolean guessWord(String word, String authToken) throws RemoteException {
+    public GuessResult guessWord(String word, int authToken) throws RemoteException {
         Galgelogik currentUser;
-        if(authToken != null && (currentUser = logins.get(authToken)) != null)
+        if(authToken != 0 && (currentUser = logins.get(authToken)) != null)
         {
             currentUser.gætBogstav(word);
-            return currentUser.erSidsteBogstavKorrekt();
+            GuessResult result = new GuessResult();
+            result.correctGuess = currentUser.erSidsteBogstavKorrekt();
+            result.wordProgress = currentUser.getSynligtOrd();
+            result.wrongGuesses = currentUser.getAntalForkerteBogstaver();
+            if(currentUser.erSpilletTabt())
+            {
+                result.status = GuessResult.Status.Lost;
+            }
+            else if(currentUser.erSpilletVundet())
+            {
+                result.status = GuessResult.Status.Won;
+            }
+            else
+            {
+                result.status = GuessResult.Status.Running;
+            }
+            return result;
         }
         throw new RemoteException("Invalid token");
     }
 
-    @Override
-    public int login(String username, String password) throws RemoteException {
-          Bruger br = connection.hentBruger(username, password);
-          if(br != null)
-          {
-              int token = getToken(br.brugernavn);
-              logins.put(token, new Galgelogik());
-              return token;
-          }
-          throw new RemoteException("Invalid login");
-    }
+    
     private int getToken(String name)
     {
        
@@ -57,6 +65,28 @@ public class GalgeServlet extends UnicastRemoteObject implements Galgeleg {
             salt.append((char)random.nextInt());
         }
         return (name + salt).hashCode();
+    }
+
+    @Override
+    public int login(String username, String password) throws RemoteException {
+          System.out.println(username + " has logged in..");
+          Bruger br;
+          try{
+                br = connection.hentBruger(username, password);
+          }
+          catch(RemoteException e)
+          {
+              throw new RemoteException("Connection to userdatabase failed", e);
+          }
+          if(br != null)
+          {
+              int token = getToken(br.brugernavn);
+              System.out.println("Generated token for user: " + token);
+              logins.put(token, new Galgelogik());
+              return token;
+          }
+          System.out.println("No such user");
+          return 0;
     }
     
 }
