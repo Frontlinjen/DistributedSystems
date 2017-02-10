@@ -7,11 +7,16 @@ package Frontend;
 
 import Shared.Galgeleg;
 import Shared.Galgeleg.GuessResult;
+import brugerautorisation.transport.soap.Brugeradmin;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.Iterator;
 import java.util.Scanner;
+import javax.xml.namespace.QName;
+import javax.xml.ws.Service;
 
 /**
  *
@@ -22,7 +27,10 @@ public class Client {
     public static void main(String[] args) {
         Galgeleg api;
         try {
-            api = (Galgeleg) Naming.lookup("rmi://localhost/galgeleg");
+            URL url = new URL("http://[::]:9901/galgeleg?wsdl");
+            QName qname = new QName("http://Backend/", "GalgeServletService");
+            Service service = Service.create(url, qname);
+            api = service.getPort(Galgeleg.class);
             Scanner sc = new Scanner(System.in);
 
             int token = 0;
@@ -66,8 +74,6 @@ public class Client {
                 
             }
             System.out.println("After " + guessedLetters.length() + " guesses.");
-        } catch (NotBoundException ex) {
-            System.out.println(ex.getMessage());
         } catch (MalformedURLException ex) {
             System.out.println(ex.getMessage());
         } catch (RemoteException ex) {

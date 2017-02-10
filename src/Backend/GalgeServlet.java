@@ -5,28 +5,37 @@
  */
 package Backend;
 
-import brugerautorisation.transport.rmi.Brugeradmin;
+import brugerautorisation.transport.soap.Brugeradmin;
 import Shared.Galgeleg;
 import brugerautorisation.data.Bruger;
 import galgeleg.Galgelogik;
+import java.net.URL;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Random;
+import javax.jws.WebService;
+import javax.xml.namespace.QName;
+import javax.xml.ws.Service;
 
 
 /**
  *
  * @author hjorthen
  */
-public class GalgeServlet extends UnicastRemoteObject implements Galgeleg {
+@WebService(endpointInterface = "Shared.Galgeleg")
+public class GalgeServlet implements Galgeleg {
     private HashMap<Integer, Galgelogik> logins = new HashMap<Integer, Galgelogik>();
     private Brugeradmin connection;
     Random random = new Random(System.currentTimeMillis());
 
     public GalgeServlet() throws Exception {
-        this.connection = (Brugeradmin) Naming.lookup("rmi://javabog.dk/brugeradmin");
+        URL url = new URL("http://javabog.dk:9901/brugeradmin?wsdl");
+        QName qname = new QName("http://soap.transport.brugerautorisation/", "BrugeradminImplService");
+	Service service = Service.create(url, qname);
+	 this.connection = service.getPort(Brugeradmin.class);
+        
     }
     
     @Override
@@ -71,13 +80,9 @@ public class GalgeServlet extends UnicastRemoteObject implements Galgeleg {
     public int login(String username, String password) throws RemoteException {
           System.out.println(username + " has logged in..");
           Bruger br;
-          try{
                 br = connection.hentBruger(username, password);
-          }
-          catch(RemoteException e)
-          {
-              throw new RemoteException("Connection to userdatabase failed", e);
-          }
+          
+          
           if(br != null)
           {
               int token = getToken(br.brugernavn);

@@ -6,11 +6,14 @@
 package Shared;
 
 import java.io.Serializable;
+import javax.jws.WebMethod;
+import javax.jws.WebService;
 
 /**
  *
  * @author hjorthen
  */
+@WebService
 public interface Galgeleg extends java.rmi.Remote {
     public class GuessResult implements Serializable{
         public static enum Status implements Serializable {
@@ -23,6 +26,6 @@ public interface Galgeleg extends java.rmi.Remote {
         public String wordProgress;
         public Status status;
     }
-    GuessResult guessWord(String word, int authToken) throws java.rmi.RemoteException;
-    int login(String username, String password) throws java.rmi.RemoteException;
+   @WebMethod  GuessResult guessWord(String word, int authToken) throws java.rmi.RemoteException;
+   @WebMethod  int login(String username, String password) throws java.rmi.RemoteException;
 }
