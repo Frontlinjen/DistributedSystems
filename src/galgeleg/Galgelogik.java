@@ -54,6 +54,13 @@ public class Galgelogik {
 
 
   public Galgelogik() {
+    try{
+        hentOrdFraDr();
+    }
+    catch(Exception e)
+    {
+        e.printStackTrace();
+    }
     muligeOrd.add("bil");
     muligeOrd.add("computer");
     muligeOrd.add("programmering");
